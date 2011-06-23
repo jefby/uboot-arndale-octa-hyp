@@ -24,7 +24,7 @@
 VERSION = 2011
 PATCHLEVEL = 06
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION = -rc3
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -140,7 +140,7 @@ SUBDIRS	= tools \
 	  examples/standalone \
 	  examples/api
 
-.PHONY : $(SUBDIRS)
+.PHONY : $(SUBDIRS) $(VERSION_FILE)
 
 ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
 
@@ -162,6 +162,36 @@ endif
 
 # load other configuration
 include $(TOPDIR)/config.mk
+
+# If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
+# that (or fail if absent).  Otherwise, search for a linker script in a
+# standard location.
+
+ifndef LDSCRIPT
+	#LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
+	ifdef CONFIG_SYS_LDSCRIPT
+		# need to strip off double quotes
+		LDSCRIPT := $(subst ",,$(CONFIG_SYS_LDSCRIPT))
+	endif
+endif
+
+ifndef LDSCRIPT
+	ifeq ($(CONFIG_NAND_U_BOOT),y)
+		LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot-nand.lds
+		ifeq ($(wildcard $(LDSCRIPT)),)
+			LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot-nand.lds
+		endif
+	endif
+	ifeq ($(wildcard $(LDSCRIPT)),)
+		LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds
+	endif
+	ifeq ($(wildcard $(LDSCRIPT)),)
+		LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot.lds
+	endif
+	ifeq ($(wildcard $(LDSCRIPT)),)
+$(error could not find linker script)
+	endif
+endif
 
 #########################################################################
 # U-Boot objects....order is important (i.e. start must be first)
@@ -263,7 +293,7 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
-.PHONY : $(LIBS) $(TIMESTAMP_FILE) $(VERSION_FILE)
+.PHONY : $(LIBS) $(TIMESTAMP_FILE)
 
 LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
 LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
@@ -422,19 +452,6 @@ mmc_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 
 $(obj)mmc_spl/u-boot-mmc-spl.bin:	mmc_spl
 
-$(VERSION_FILE):
-		@( localvers='$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))' ; \
-		   printf '#define PLAIN_VERSION "%s%s"\n' \
-			"$(U_BOOT_VERSION)" "$${localvers}" ; \
-		   printf '#define U_BOOT_VERSION "U-Boot %s%s"\n' \
-			"$(U_BOOT_VERSION)" "$${localvers}" ; \
-		) > $@.tmp
-		@( printf '#define CC_VERSION_STRING "%s"\n' \
-		 '$(shell $(CC) --version | head -n 1)' )>>  $@.tmp
-		@( printf '#define LD_VERSION_STRING "%s"\n' \
-		 '$(shell $(LD) -v | head -n 1)' )>>  $@.tmp
-		@cmp -s $@ $@.tmp && rm -f $@.tmp || mv -f $@.tmp $@
-
 $(TIMESTAMP_FILE):
 		@LC_ALL=C date +'#define U_BOOT_DATE "%b %d %C%y"' > $@
 		@LC_ALL=C date +'#define U_BOOT_TIME "%T"' >> $@
@@ -509,20 +526,33 @@ $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
 $(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
-$(filter-out tools,$(SUBDIRS)) $(TIMESTAMP_FILE) $(VERSION_FILE) \
+$(filter-out tools,$(SUBDIRS)) $(TIMESTAMP_FILE) \
 updater depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
 	@ exit 1
 
-tools:
+tools: $(VERSION_FILE)
 	$(MAKE) -C $@ all
 endif	# config.mk
+
+$(VERSION_FILE):
+		@( localvers='$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))' ; \
+		   printf '#define PLAIN_VERSION "%s%s"\n' \
+			"$(U_BOOT_VERSION)" "$${localvers}" ; \
+		   printf '#define U_BOOT_VERSION "U-Boot %s%s"\n' \
+			"$(U_BOOT_VERSION)" "$${localvers}" ; \
+		) > $@.tmp
+		@( printf '#define CC_VERSION_STRING "%s"\n' \
+		 '$(shell $(CC) --version | head -n 1)' )>>  $@.tmp
+		@( printf '#define LD_VERSION_STRING "%s"\n' \
+		 '$(shell $(LD) -v | head -n 1)' )>>  $@.tmp
+		@cmp -s $@ $@.tmp && rm -f $@.tmp || mv -f $@.tmp $@
 
 easylogo env gdb:
 	$(MAKE) -C tools/$@ all MTD_VERSION=${MTD_VERSION}
 gdbtools: gdb
 
-tools-all: easylogo env gdb
+tools-all: easylogo env gdb $(VERSION_FILE)
 	$(MAKE) -C tools HOST_TOOLS_ALL=y
 
 .PHONY : CHANGELOG
@@ -766,43 +796,6 @@ M5485HFE_config :	unconfig
 ## ARM926EJ-S Systems
 #########################################################################
 
-at91sam9260ek_nandflash_config \
-at91sam9260ek_dataflash_cs0_config \
-at91sam9260ek_dataflash_cs1_config \
-at91sam9260ek_config \
-at91sam9g20ek_nandflash_config \
-at91sam9g20ek_dataflash_cs0_config \
-at91sam9g20ek_dataflash_cs1_config \
-at91sam9g20ek_config	:	unconfig
-	@mkdir -p $(obj)include
-	@if [ "$(findstring 9g20,$@)" ] ; then \
-		echo "#define CONFIG_AT91SAM9G20EK 1"	>>$(obj)include/config.h ; \
-	else \
-		echo "#define CONFIG_AT91SAM9260EK 1"	>>$(obj)include/config.h ; \
-	fi;
-	@if [ "$(findstring _nandflash,$@)" ] ; then \
-		echo "#define CONFIG_SYS_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
-	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
-		echo "#define CONFIG_SYS_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
-	else \
-		echo "#define CONFIG_SYS_USE_DATAFLASH_CS1 1"	>>$(obj)include/config.h ; \
-	fi;
-	@$(MKCONFIG) -n $@ -a at91sam9260ek arm arm926ejs at91sam9260ek atmel at91
-
-at91sam9xeek_nandflash_config \
-at91sam9xeek_dataflash_cs0_config \
-at91sam9xeek_dataflash_cs1_config \
-at91sam9xeek_config	:	unconfig
-	@mkdir -p $(obj)include
-	@if [ "$(findstring _nandflash,$@)" ] ; then \
-		echo "#define CONFIG_SYS_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
-	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
-		echo "#define CONFIG_SYS_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
-	else \
-		echo "#define CONFIG_SYS_USE_DATAFLASH_CS1 1"	>>$(obj)include/config.h ; \
-	fi;
-	@$(MKCONFIG) -n $@ -a at91sam9260ek arm arm926ejs at91sam9260ek atmel at91
-
 at91sam9261ek_nandflash_config \
 at91sam9261ek_dataflash_cs0_config \
 at91sam9261ek_dataflash_cs3_config \
@@ -856,14 +849,6 @@ at91sam9rlek_config	:	unconfig
 		echo "#define CONFIG_SYS_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
 	fi;
 	@$(MKCONFIG) -n $@ -a at91sam9rlek arm arm926ejs at91sam9rlek atmel at91
-
-CPU9G20_128M_config \
-CPU9G20_config \
-CPU9260_128M_config \
-CPU9260_config	:	unconfig
-	@mkdir -p $(obj)include
-	@echo "#define CONFIG_$(@:_config=) 1" >$(obj)include/config.h
-	@$(MKCONFIG) -n $@ -a cpu9260 arm arm926ejs cpu9260 eukrea at91
 
 at91sam9m10g45ek_nandflash_config \
 at91sam9m10g45ek_dataflash_config \
@@ -981,29 +966,6 @@ SX1_config:		unconfig
 		echo "#define CONFIG_STDOUT_USBTTY" >> $(obj)include/config.h ; \
 	fi;
 	@$(MKCONFIG) -n $@ SX1 arm arm925t sx1
-
-# TRAB default configuration:	8 MB Flash, 32 MB RAM
-trab_config \
-trab_bigram_config \
-trab_bigflash_config \
-trab_old_config:	unconfig
-	@mkdir -p $(obj)include
-	@mkdir -p $(obj)board/trab
-	@[ -z "$(findstring _bigram,$@)" ] || \
-		{ echo "#define CONFIG_FLASH_8MB"  >>$(obj)include/config.h ; \
-		  echo "#define CONFIG_RAM_32MB"   >>$(obj)include/config.h ; \
-		}
-	@[ -z "$(findstring _bigflash,$@)" ] || \
-		{ echo "#define CONFIG_FLASH_16MB" >>$(obj)include/config.h ; \
-		  echo "#define CONFIG_RAM_16MB"   >>$(obj)include/config.h ; \
-		  echo "CONFIG_SYS_TEXT_BASE = 0x0CF40000" >$(obj)board/trab/config.tmp ; \
-		}
-	@[ -z "$(findstring _old,$@)" ] || \
-		{ echo "#define CONFIG_FLASH_8MB"  >>$(obj)include/config.h ; \
-		  echo "#define CONFIG_RAM_16MB"   >>$(obj)include/config.h ; \
-		  echo "CONFIG_SYS_TEXT_BASE = 0x0CF40000" >$(obj)board/trab/config.tmp ; \
-		}
-	@$(MKCONFIG) -n $@ -a trab arm arm920t trab - s3c24x0
 
 tx25_config	: unconfig
 	@echo "CONFIG_NAND_U_BOOT = y" >> $(obj)include/config.mk
@@ -1124,7 +1086,7 @@ clean:
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
 	       $(obj)board/netstar/{eeprom,crcek,crcit,*.srec,*.bin}	  \
-	       $(obj)board/trab/trab_fkt   $(obj)board/voiceblue/eeprom   \
+	       $(obj)board/voiceblue/eeprom 				  \
 	       $(obj)board/armltd/{integratorap,integratorcp}/u-boot.lds  \
 	       $(obj)u-boot.lds						  \
 	       $(obj)arch/blackfin/cpu/bootrom-asm-offsets.[chs]
