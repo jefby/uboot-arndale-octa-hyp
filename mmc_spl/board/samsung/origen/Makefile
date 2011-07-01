@@ -40,7 +40,7 @@ CFLAGS	+= -DCONFIG_PRELOADER
 SOBJS	= start.o mem_setup.o lowlevel_init.o
 COBJS	= mmc_boot.o
 
-SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
+SRCS	:= $($(SOBJS:.o=.S) $(COBJS:.o=.c))
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
 LNDIR	:= $(OBJTREE)/mmc_spl/board/$(BOARDDIR)
