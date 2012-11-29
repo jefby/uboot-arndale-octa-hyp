@@ -134,6 +134,13 @@ ifdef CONFIG_SAMSUNG
 $(obj)$(BOARD)-spl.bin: $(obj)u-boot-spl.bin
 	$(OBJTREE)/tools/mk$(SOC)spl \
 		$(obj)u-boot-spl.bin $(obj)$(BOARD)-spl.bin
+ifdef CONFIG_ORIGEN_QUAD
+	if [ -f $(TOPDIR)/firmware/$(BOARD)/bl1.fw ] ; then \
+		cat $(TOPDIR)/firmware/$(BOARD)/bl1.fw > dummy; \
+		cat $(obj)$(BOARD)-spl.bin >> dummy; \
+		mv dummy $(obj)$(BOARD)-spl.bin; \
+	fi
+endif
 endif
 
 $(obj)u-boot-spl.bin:	$(obj)u-boot-spl
