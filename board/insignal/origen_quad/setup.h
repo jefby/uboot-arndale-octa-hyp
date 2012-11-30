@@ -230,6 +230,80 @@
 					|(UART1_RATIO << 4) \
 					|(UART0_RATIO))
 
+/* Clock Source CAM/FIMC */
+/* CLK_SRC_CAM */
+#define CAM0_SEL_XUSBXTI	1
+#define CAM1_SEL_XUSBXTI	1
+#define CSIS0_SEL_XUSBXTI	1
+#define CSIS1_SEL_XUSBXTI	1
+
+#define FIMC_SEL_SCLKMPLL	6
+#define FIMC0_LCLK_SEL		FIMC_SEL_SCLKMPLL
+#define FIMC1_LCLK_SEL		FIMC_SEL_SCLKMPLL
+#define FIMC2_LCLK_SEL		FIMC_SEL_SCLKMPLL
+#define FIMC3_LCLK_SEL		FIMC_SEL_SCLKMPLL
+
+#define CLK_SRC_CAM_VAL		((CSIS1_SEL_XUSBXTI << 28) \
+				| (CSIS0_SEL_XUSBXTI << 24) \
+				| (CAM1_SEL_XUSBXTI << 20) \
+				| (CAM0_SEL_XUSBXTI << 16) \
+				| (FIMC3_LCLK_SEL << 12) \
+				| (FIMC2_LCLK_SEL << 8) \
+				| (FIMC1_LCLK_SEL << 4) \
+				| (FIMC0_LCLK_SEL << 0))
+
+/* SCLK CAM */
+/* CLK_DIV_CAM */
+#define FIMC0_LCLK_RATIO	4
+#define FIMC1_LCLK_RATIO	4
+#define FIMC2_LCLK_RATIO	4
+#define FIMC3_LCLK_RATIO	4
+#define CLK_DIV_CAM_VAL		((FIMC3_LCLK_RATIO << 12) \
+				| (FIMC2_LCLK_RATIO << 8) \
+				| (FIMC1_LCLK_RATIO << 4) \
+				| (FIMC0_LCLK_RATIO << 0))
+
+/* SCLK MFC */
+/* CLK_SRC_MFC */
+#define MFC_SEL_MPLL		0
+#define MOUTMFC_0		0
+#define MFC_SEL			MOUTMFC_0
+#define MFC_0_SEL		MFC_SEL_MPLL
+#define CLK_SRC_MFC_VAL		((MFC_SEL << 8) | (MFC_0_SEL))
+
+
+/* CLK_DIV_MFC */
+#define MFC_RATIO		3
+#define CLK_DIV_MFC_VAL		(MFC_RATIO)
+
+/* SCLK G3D */
+/* CLK_SRC_G3D */
+#define G3D_SEL_MPLL		0
+#define MOUTG3D_0		0
+#define G3D_SEL			MOUTG3D_0
+#define G3D_0_SEL		G3D_SEL_MPLL
+#define CLK_SRC_G3D_VAL		((G3D_SEL << 8) | (G3D_0_SEL))
+
+/* CLK_DIV_G3D */
+#define G3D_RATIO		1
+#define CLK_DIV_G3D_VAL		(G3D_RATIO)
+
+/* SCLK LCD0 */
+/* CLK_SRC_LCD0 */
+#define FIMD_SEL_SCLKMPLL	6
+#define MDNIE0_SEL_XUSBXTI	1
+#define MDNIE_PWM0_SEL_XUSBXTI	1
+#define MIPI0_SEL_XUSBXTI	1
+#define CLK_SRC_LCD0_VAL	((MIPI0_SEL_XUSBXTI << 12) \
+				| (MDNIE_PWM0_SEL_XUSBXTI << 8) \
+				| (MDNIE0_SEL_XUSBXTI << 4) \
+				| (FIMD_SEL_SCLKMPLL << 0))
+
+/* CLK_DIV_LCD0 */
+#define MIPI0_PRE_RATIO		7
+#define FIMD0_RATIO		4
+#define CLK_DIV_LCD0_VAL	((MIPI0_PRE_RATIO << 20) \
+				| (FIMD0_RATIO))
 /* Power Down Modes */
 #define S5P_CHECK_SLEEP			0x00000BAD
 #define S5P_CHECK_DIDLE			0xBAD00000

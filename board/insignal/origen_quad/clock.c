@@ -99,5 +99,21 @@ void clock_ctrl_init(void)
 	writel(0x0000000F, &clk->div_fsys2); /* MMC2 - SDMMC */
 	/* CLK_DIV_FSYS3 */
 	writel(0x00000100, &clk->div_fsys3); /* MMC4 - eMMC */
+
+	/* FIMC */
+	writel(CLK_SRC_CAM_VAL, &clk->src_cam0);
+	writel(CLK_DIV_CAM_VAL, &clk->div_cam0);
+
+	/* MFC */
+	writel(CLK_SRC_MFC_VAL, &clk->src_mfc);
+	writel(CLK_DIV_MFC_VAL, &clk->div_mfc);
+
+	/* G3D */
+	writel(CLK_SRC_G3D_VAL, &clk->src_g3d);
+	writel(CLK_DIV_G3D_VAL, &clk->div_g3d);
+
+	/* LCD0 */
+	writel(CLK_SRC_LCD0_VAL, &clk->src_lcd0);
+	writel(CLK_DIV_LCD0_VAL, &clk->div_lcd);
 }
 
