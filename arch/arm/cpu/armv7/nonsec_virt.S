@@ -175,6 +175,7 @@ ENTRY(_nonsec_init)
 	mrc	p15, 0, ip, c12, c0, 0		@ save secure copy of VBAR
 
 	isb
+	.arch_extension sec
 	smc	#0				@ call into MONITOR mode
 
 	mcr	p15, 0, ip, c12, c0, 0		@ write non-secure copy of VBAR
