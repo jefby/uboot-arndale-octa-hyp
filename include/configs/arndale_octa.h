@@ -77,6 +77,9 @@
 
 /* input clock of PLL: SMDK5420 has 24MHz input clock */
 #define CONFIG_SYS_CLK_FREQ		24000000
+#define CONFIG_SYSFLAGS_ADDR		0x02020000
+/* here i'm confused , because the devicetree source code is 0x10481000,why here is 0x10480000??,so i'm set it to 0x10481000*/
+#define CONFIG_ARM_GIC_BASE_ADDRESS	0x10481000
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
@@ -400,8 +403,17 @@
 #define CONFIG_NET_MULTI
 #endif /*CONFIG_CMD_NET*/
 
-/* Disable devicetree support */
+/*
+#define CONFIG_SECURE_BOOT
+*/
+
+/* Enable devicetree support */
 #define CONFIG_OF_LIBFDT
+
+/* Enable virt mode commands */
+#define CONFIG_ARMV7_VIRT
+
+
 
 /* Base address for secondary boot information */
 #define CONFIG_SECONDARY_BOOT_INFORM_BASE	(CONFIG_SYS_TEXT_BASE - 0x8)
