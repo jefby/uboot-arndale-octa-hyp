@@ -403,9 +403,9 @@
 #define CONFIG_NET_MULTI
 #endif /*CONFIG_CMD_NET*/
 
-/*
+
 #define CONFIG_SECURE_BOOT
-*/
+
 
 /* Enable devicetree support */
 #define CONFIG_OF_LIBFDT
