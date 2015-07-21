@@ -20,7 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA
 #
-PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -mfloat-abi=hard -mfpu=vfpv3
+#PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -mfloat-abi=hard -mfpu=vfpv3
+PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -mfloat-abi=soft
 
 # If armv7-a is not supported by GCC fall-back to armv5, which is
 # supported by more tool-chains
@@ -29,7 +30,7 @@ PLATFORM_CPPFLAGS += $(PF_CPPFLAGS_ARMV7)
 PF_CPPFLAGS_NO_UNALIGNED := $(call cc-option, -mno-unaligned-access,)
 PLATFORM_CPPFLAGS += $(PF_CPPFLAGS_NO_UNALIGNED)
 
-# =========================================================================
+#=========================================================================
 #
 # Supply options according to compiler version
 #
