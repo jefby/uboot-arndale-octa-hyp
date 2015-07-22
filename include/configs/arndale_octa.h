@@ -418,10 +418,10 @@
 /* Base address for secondary boot information */
 #define CONFIG_SECONDARY_BOOT_INFORM_BASE	(CONFIG_SYS_TEXT_BASE - 0x8)
 
-/*
- *
+
+
 #define CONFIG_SECURE_KERNEL_BASE       0x20008000
 
 #define CONFIG_SECURE_KERNEL_SIZE       0x400000
-*/
+
 #endif	/* __CONFIG_H */
